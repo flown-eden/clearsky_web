@@ -15,7 +15,6 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import AdminAppointmentView from './Appointment/AdminAppointmentView.vue';
 import ConsultantAppointmentView from './Appointment/ConsultantAppointmentView.vue';
 
 // 存储从本地获取的用户真实角色

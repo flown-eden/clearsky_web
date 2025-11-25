@@ -4,70 +4,70 @@ import request from '@/utils/request'
 // 修改前：手动拼接导致 undefined
 // 修改后：使用 params 对象，axios 会自动忽略 undefined 的参数
 export function GetResources(params) {
-  return request({
-    url: '/resources',
-    method: 'get',
-    params: params // 关键修改：把参数交给 axios 处理
-  })
-}
-
-// 下面这几个不需要动，但为了保持文件完整性，您确认一下即可
-export function DeleteById(resourceId){
     return request({
-        url:`/resources/${resourceId}`,
-        method:'delete'
+        url: '/resources',
+        method: 'get',
+        params: params // 关键修改：把参数交给 axios 处理
     })
 }
 
-export function GetResourcesId(resourceId){
+// 删除资源
+export function DeleteById(resourceId) {
     return request({
-        url:`/resources/${resourceId}`,
-        method:'get'
+        url: `/resources/${resourceId}`,
+        method: 'delete'
     })
 }
-
-export function PutResourcesId(resourceId,data){
+//获取资源详情
+export function GetResourcesId(resourceId) {
     return request({
-        url:`/resources/${resourceId}`,
-        method:'put',
-        data:data
+        url: `/resources/${resourceId}`,
+        method: 'get'
     })
 }
-
-export function PostAddResources(data){
+//更新资源
+export function PutResourcesId(resourceId, data) {
     return request({
-        url:`/resources/upload`,
-        method:'post',
-        data:data
+        url: `/resources/${resourceId}`,
+        method: 'put',
+        data: data
     })
 }
-
-export function GetResourceCategories(){
+//上传心理资源（直接发布）
+export function PostAddResources(data) {
     return request({
-        url:`/resources/categories`,
-        method:'get'
+        url: `/resources/upload`,
+        method: 'post',
+        data: data
     })
 }
-
-export function PutResourceCategories(categoryId,data){
+//获取资源分类
+export function GetResourceCategories() {
     return request({
-        url:`/resources/categories/${categoryId}`,
-        method:'put',
-        data:data
+        url: `/resources/categories`,
+        method: 'get'
     })
 }
-
-export function PostResourceCategories(data){
+//更新资源分类
+export function PutResourceCategories(categoryId, data) {
     return request({
-        url:`/resources/categories`,
-        method:'post',
-        data:data
+        url: `/resources/categories/${categoryId}`,
+        method: 'put',
+        data: data
     })
 }
-
-export function DeleteResourceCategories(categoryId){
+//创建资源分类
+export function PostResourceCategories(data) {
     return request({
-        url:`/resources/categories/${categoryId}`,
-        method:'delete'
+        url: `/resources/categories`,
+        method: 'post',
+        data: data
+    })
+}
+//删除资源分类
+export function DeleteResourceCategories(categoryId) {
+    return request({
+        url: `/resources/categories/${categoryId}`,
+        method: 'delete'
     })
 }

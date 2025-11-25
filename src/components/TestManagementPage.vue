@@ -867,7 +867,13 @@ const validateQuestions = () => {
   questionErrors.value = errors;
   return Object.keys(errors).length === 0;
 };
-
+// Dialog关闭前的回调，用于 el-dialog 的 :before-close 属性 【新增此函数以修复警告】
+const handleClose = (done) => {
+  // 调用取消操作执行清理和隐藏逻辑
+  handleCancel();
+  // 必须调用 done() 才能关闭 Dialog
+  done();
+};
 // 取消操作
 const handleCancel = () => {
   dialogVisible.value = false;

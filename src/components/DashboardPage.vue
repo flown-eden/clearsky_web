@@ -28,7 +28,7 @@
       <div class="stat-card wide-card">
         <h3 class="card-title">近五月学生预约趋势</h3>
         <div class="line-chart-placeholder">
-          <p id="main1">[ 折线图占位：显示预约趋势 ]</p>
+          <div id="main1"></div>
         </div>
       </div>
 
@@ -107,10 +107,16 @@ const fetchDashboardData = async () => {
 const calculateCompletionRate = () => {
   // 使用 API 返回的 appointmentCompletionRate
   let completionRate = dashboardList.value?.appointmentStats?.appointmentCompletionRate;
-
+  
+  // 【修复之前提到的 TypeError】确保 appointmentStats 存在，避免 TypeError
+  const stats = dashboardList.value?.appointmentStats;
+  if (!stats) {
+      return 0; // 如果数据不存在，直接返回 0
+  }
+  
   if (completionRate === undefined || completionRate === null || isNaN(completionRate)) {
     // 如果 API 未提供，则根据 confirmedAppointments / totalAppointments 自行计算
-    const stats = dashboardList.value.appointmentStats;
+    // 【修正】移除重复且危险的 const stats = dashboardList.value.appointmentStats;
     const total = stats.totalAppointments || 0;
     const confirmed = stats.confirmedAppointments || 0;
 
@@ -134,6 +140,10 @@ const initChartAfterDataLoaded = async () => {
   await new Promise(resolve => setTimeout(resolve, 0));
   const completionRate = calculateCompletionRate();
   initChart1(completionRate);
+  
+  // 【新增】初始化折线图
+  // 假设趋势数据在 dashboardList.value.trendData 中，如果 API 没有，则使用空数组
+  initChart2(dashboardList.value?.trendData || []); 
 }
 
 
@@ -146,7 +156,6 @@ const initChart1 = (data) => {
     return;
   }
   
-  // ... (图表初始化和配置代码保持不变，因为它已经使用了传入的 data) ...
   let chartValue = data;
   if (data === undefined || data === null || isNaN(data)) {
     console.warn('预约完成率数据无效，使用默认值 0');
@@ -231,11 +240,56 @@ const initChart1 = (data) => {
   myChart1.setOption(option);
 }
 
+// 【新增】折线图 (Line Chart) 逻辑
+let myChart2 = null
+const initChart2 = (trendData) => {
+    const chartDom = document.getElementById('main1');
+    // 【健壮性检查】检查 DOM 元素是否存在且尺寸非零
+    if (!chartDom || chartDom.clientWidth === 0 || chartDom.clientHeight === 0) { 
+        console.warn('折线图 DOM 元素不存在或尺寸为零，跳过初始化。');
+        return;
+    }
+    
+    if (!myChart2) {
+      myChart2 = echarts.init(chartDom);
+    }
+    
+    // 假设 trendData 结构为 [{ month: '2023-01', appointments: 5 }, ...]
+    const categories = Array.isArray(trendData) ? trendData.map(d => d.month || '未知') : [];
+    const seriesData = Array.isArray(trendData) ? trendData.map(d => d.appointments || 0) : [];
+    
+    const option = {
+        title: { text: '近五月预约趋势', left: 'center', show: false },
+        tooltip: { trigger: 'axis' },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: { 
+            type: 'category', 
+            data: categories 
+        },
+        yAxis: { type: 'value' },
+        series: [{ 
+            name: '预约数',
+            type: 'line', 
+            data: seriesData,
+            smooth: true
+        }],
+    };
+    myChart2.setOption(option);
+}
+
+// 监听窗口大小变化
+const onResize = () => {
+    myChart1 && myChart1.resize();
+    myChart2 && myChart2.resize(); // 【新增】
+}
+
 // -------------------- 生命周期钩子 --------------------
 
 onMounted(() => {
   // 首次加载时调用数据获取函数
   fetchDashboardData(); 
+  // 【新增】监听页面 resize，以便图表能响应式调整
+  window.addEventListener('resize', onResize);
 });
 
 // 监听 dashboardList 变化，当数据更新时重新初始化图表
@@ -246,6 +300,7 @@ watch(
       const completionRate = calculateCompletionRate();
       setTimeout(() => {
         initChart1(completionRate);
+        initChart2(dashboardList.value?.trendData || []); // 【新增】
       }, 0);
     }
   },
@@ -258,6 +313,12 @@ onBeforeUnmount(() => {
     myChart1.dispose();
     myChart1 = null;
   }
+  if (myChart2) { // 【新增】清理 myChart2
+    myChart2.dispose();
+    myChart2 = null;
+  }
+  // 【新增】移除 resize 监听器
+  window.removeEventListener('resize', onResize); 
 });
 
 </script>
@@ -402,6 +463,12 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   margin-top: 10px;
+}
+
+/* 【新增/修正】确保折线图容器有明确尺寸 */
+#main1 {
+    width: 100%; 
+    height: 100%;
 }
 
 /* --- 底部详细部分 --- */

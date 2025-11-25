@@ -243,19 +243,21 @@ const loadCategoryData = async () => {
 const getResourcesList = async () => {
   try {
     const res = await GetResources(resourcesForm.value);
-    console.log("资源列表API返回:", res);
+    console.log("资源列表API返回 (解包后):", res);
     
-    // 适配接口结构: { data: { records: [], pages: 16, total: 156 } }
-    // 注意：request.js 拦截器可能会解包 data，这里做兼容处理
-    const data = res.data || res; 
-    
-    if (data) {
-      resourcesList.value = data.records || [];
-      totalPages.value = data.pages || 1;
+    // **核心修改：适配 res.list 和 res.pagination 结构**
+    if (res && res.list && res.pagination) {
+      resourcesList.value = res.list; // 使用 list 字段作为列表数据
+      totalPages.value = res.pagination.pages || 1; // 使用 pagination.pages 字段作为总页数
+    } else {
+        // 兼容之前假设的 { records, pages } 结构，以防其他接口返回方式不同
+        resourcesList.value = res.records || [];
+        totalPages.value = res.pages || 1;
     }
   } catch (error) {
     console.error("获取资源列表失败", error);
     resourcesList.value = [];
+    totalPages.value = 1;
   }
 };
 
@@ -271,8 +273,8 @@ const fetchStats = async () => {
     ]);
 
     const getCount = (res) => {
-      const data = res.data || res;
-      return data.total || 0;
+      // **核心修改：从 res.pagination.total 获取总数**
+      return (res && res.pagination) ? (res.pagination.total || 0) : 0;
     };
 
     const aCount = getCount(articleRes);

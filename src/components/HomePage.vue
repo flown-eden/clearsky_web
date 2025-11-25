@@ -42,11 +42,17 @@
     <i class="fa-solid fa-people-group"></i>
     <span>社区管理</span>
   </div>
+<div class="menu-item" @click="changeContent('TestManagementPage')"
+      :class="{ active: currentView === 'TestManagementPage' }">
+    <i class="fa-solid fa-clipboard-list"></i> 
+    <span>心理测评管理</span>
+  </div>
   <div class="menu-item" @click="changeContent('ConversationPage')"
       :class="{ active: currentView === 'ConversationPage' }">
     <i class="fa-solid fa-comments"></i>
     <span>后台会话管理</span>
   </div>
+
 </nav>
 
       <div class="sidebar-footer">

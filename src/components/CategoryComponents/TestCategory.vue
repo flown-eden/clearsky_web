@@ -7,8 +7,8 @@
       <el-table-column prop="description" label="分类描述" />
       <el-table-column label="操作">
         <template #default="{ row }">
-          <el-button type="primary" size="mini" @click="edit(row)">编辑</el-button>
-          <el-button type="danger" size="mini" @click="deleteCategory(row)">删除</el-button>
+          <el-button type="primary" size="small" @click="edit(row)">编辑</el-button>
+          <el-button type="danger" size="small" @click="deleteCategory(row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -131,6 +131,14 @@ const deleteCategory = async (row) => {
     }
   }
 };
+const handleClose = (done) => {
+  // 确保在关闭对话框时重置表单
+  resetForm(); 
+  title.value = "";
+  // 必须调用 done() 才能关闭 Dialog
+  done();
+};
+
 // 提交表单
 const submitForm = async () => {
   if (!formRef.value) return;
@@ -160,7 +168,6 @@ const submitForm = async () => {
     await loadCategoryData();
     // 关闭对话框
     dialog.value = false;
-    resetForm();
   } catch (error) {
     // 表单验证失败会抛出error === false
     if (error !== false) {
@@ -179,7 +186,7 @@ const submitForm = async () => {
 // 打开对话框
 const open = () => {
   dialogVisible.value = true;
-  isFormVisible.value = false;
+
   loadCategoryData();
 };
 
