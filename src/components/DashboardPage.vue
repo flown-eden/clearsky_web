@@ -45,13 +45,7 @@
       </div>
 
     </div>
-
-    <div class="detail-section">
-      <h3 class="section-title">待办事项与风险提示</h3>
-      <div class="list-placeholder">
-        <p>[ 详细待办事项或列表数据占位 ]</p>
-      </div>
-    </div>
+    
 
   </div>
 </template>
