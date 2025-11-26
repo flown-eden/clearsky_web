@@ -264,7 +264,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, reactive, onMounted, computed, watch } from 'vue';
 import {
   GetUsers, GetByUserId, PutByUserIdStatus,

@@ -41,7 +41,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { reactive, onBeforeUnmount } from 'vue';
 // 导入实际的 API 调用函数
 // **注意：请根据您实际的文件路径修改下面的导入语句**

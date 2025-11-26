@@ -77,7 +77,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/user';
 import logoPng from '@/assets/images/logo.png';

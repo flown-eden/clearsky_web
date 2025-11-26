@@ -51,7 +51,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { reactive, onBeforeUnmount } from 'vue';
 // 移除了 axios，因为 auth.js 中已封装
 import { PostRegister } from '@/api/auth';

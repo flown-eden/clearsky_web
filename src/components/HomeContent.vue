@@ -59,7 +59,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { GetPendingConsultants } from '@/api/user';
@@ -90,16 +90,16 @@ const updateClock = () => {
   const hours = now.getHours();
   const minutes = now.getMinutes();
   const seconds = now.getSeconds();
-  
+
   // 计算角度
   const hoursDeg = (hours % 12) * 30 + minutes * 0.5; // 时针每小时30度，每分钟0.5度
   const minutesDeg = minutes * 6 + seconds * 0.1; // 分针每分钟6度，每秒0.1度
   const secondsDeg = seconds * 6; // 秒针每秒6度
-  
+
   hoursDegrees.value = hoursDeg;
   minutesDegrees.value = minutesDeg;
   secondsDegrees.value = secondsDeg;
-  
+
   // 更新数字时间显示
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -192,7 +192,7 @@ const navigateTo = (page, tab = null) => {
 
 onMounted(async () => {
   userRole.value = userStore.role;
-  
+
   // 初始化时钟显示并启动时钟
   updateClock();
   clockInterval = setInterval(updateClock, 1000);

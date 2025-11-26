@@ -160,7 +160,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, computed, nextTick } from 'vue';
 import {
   GetActiveConversations,

@@ -56,7 +56,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { GetDashboard, GetConsultant } from '@/api/dashboard';
 import { onMounted, ref, onBeforeUnmount, watch } from 'vue'
 import * as echarts from 'echarts'
