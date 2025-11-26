@@ -79,12 +79,12 @@
                 <button class="action-btn view-btn" @click="handleViewDetails(item)">
                   详情
                 </button>
-                
+
                 <template v-if="item.status === 'PENDING'">
                   <button class="action-btn approve-btn" @click="handleReview(item.id, 'APPROVED')">通过</button>
                   <button class="action-btn reject-btn" @click="handleReview(item.id, 'REJECTED')">拒绝</button>
                 </template>
-                
+
                 <template v-else-if="item.status === 'APPROVED'">
                   <button class="action-btn reject-btn" @click="handleReview(item.id, 'REJECTED')">撤下</button>
                 </template>
@@ -119,7 +119,7 @@
       </div>
     </div>
   </div>
-  
+
   <el-dialog v-model="dialogVisible" :title="title" width="500" :before-close="handleClose">
     <el-form :model="dialogForm" label-width="auto" style="max-width: 600px" :disabled="true">
       <el-form-item label="文章标题">
@@ -152,7 +152,7 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import {
   GetCommunity,
@@ -168,7 +168,7 @@ const userRole = ref(null);
 const communityList = ref([]);
 const dialogVisible = ref(false);
 const title = ref();
-const totalPages = ref(1); 
+const totalPages = ref(1);
 const communityForm = ref({
   page: 1,
   size: 10,
@@ -177,7 +177,7 @@ const communityForm = ref({
 });
 const dialogForm = ref({
   title: '',
-  content: '', 
+  content: '',
   likeCount: '',
   commentCount: '',
   authorName: '',
@@ -201,10 +201,10 @@ const totalPosts = computed(() => {
 // 根据状态码返回中文标签
 const getStatusLabel = (status) => {
   // 添加空值检查
-  if (!status) return '未知状态'; 
-    
+  if (!status) return '未知状态';
+
   // 关键修改：统一将传入的状态转换为大写进行匹配
-  const upperStatus = status.toUpperCase(); 
+  const upperStatus = status.toUpperCase();
 
   switch (upperStatus) {
     case 'PENDING':
@@ -212,7 +212,7 @@ const getStatusLabel = (status) => {
     case 'APPROVED':
       return '已通过';
     case 'REJECTED':
-      return '已拒绝'; 
+      return '已拒绝';
     default:
       // 如果仍返回空，说明状态值完全不在预期内
       return '未知';
@@ -230,12 +230,12 @@ const getCommunityList = async () => {
     if (communityForm.value.status === 'PENDING') {
       const resPending = await GetAdminPendingPosts();
       console.log("待审核博文API返回 (Admin):", resPending);
-      
+
       listRecords = Array.isArray(resPending) ? resPending : resPending.data || [];
-      
+
       communityList.value = listRecords;
       totalPages.value = 1; // 强制设为1，禁用分页
-      communityForm.value.page = 1; 
+      communityForm.value.page = 1;
       return; // PENDING 状态处理完毕后直接返回
     }
 
@@ -255,19 +255,19 @@ const getCommunityList = async () => {
     if (communityForm.value.status === "") {
       const resPending = await GetAdminPendingPosts();
       console.log("额外获取待审核博文 (Admin):", resPending);
-      
+
       const pendingRecords = Array.isArray(resPending) ? resPending : resPending.data || [];
-      
+
       // 合并列表：将待审核 (非分页) 放在最前面，然后接通用列表 (分页结果)
       listRecords = [...pendingRecords, ...listRecords];
-      
+
       // 注意：分页信息仍然以通用接口 ( APPROVED/REJECTED ) 为准，因为 PENDING 是非分页的。
     }
-    
+
     // 更新列表数据和分页
     communityList.value = listRecords;
     totalPages.value = pagination.pages || 1;
-    
+
   } catch (error) {
     console.error("获取博文列表失败", error);
     communityList.value = [];
@@ -349,7 +349,7 @@ const handleViewDetails = async (item) => {
   if (status === 'APPROVED') {
     try {
       const res = await GetPostsInfo(item.id);
-      
+
       // 假设 GetPostsInfo 成功返回的数据在 res.data 中
       if (res && res.data) {
         detailData = res.data;
@@ -363,8 +363,8 @@ const handleViewDetails = async (item) => {
       ElMessage.error('获取博文详情失败，请检查网络或后端服务');
       return; // 详情获取失败，终止弹窗
     }
-  } 
-  
+  }
+
   // 对于 PENDING 状态的博文，假设 listRecords 中已包含 content 字段，直接使用 item 即可。
 
   // 填充对话框表单
@@ -379,7 +379,7 @@ const handleViewDetails = async (item) => {
     createdAt: detailData.createdAt ? detailData.createdAt.replace('T', ' ') : '-',
     // ... 如果 dialogForm 还有其他字段，请确保它们也被赋值 ...
   };
-  
+
   // 显示弹窗
   dialogVisible.value = true;
 };
@@ -390,7 +390,7 @@ const handleReview = async (id, newStatus) => {
     alert("权限不足！只有系统管理员可以审核博文。");
     return;
   }
-  
+
   const actionLabel = getStatusLabel(newStatus);
   if (confirm(`ADMIN 确定将博文 ID: ${id} 状态变更为【${actionLabel}】吗？`)) {
     try {

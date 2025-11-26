@@ -54,7 +54,7 @@
           <option value="CANCELLED">已取消</option>
           <option value="REJECTED">已拒绝</option>
         </select>
-        
+
         <input type="text" v-model="filterForm.searchKeyword" placeholder="输入用户姓名/学号关键词" class="search-input">
 
         <button class="search-btn" @click="fetchAppointments">查询/刷新</button>
@@ -99,7 +99,7 @@
                   拒绝
                 </button>
               </template>
-              
+
               <template v-else-if="item.status === 'CONFIRMED'">
                 <button
                   class="action-btn complete-btn"
@@ -130,10 +130,10 @@
         <button :disabled="pagination.page * pagination.size >= pagination.total" @click="changePage(1)">下一页</button>
       </div>
     </div>
-    
+
     <div class="schedule-section">
       <h3 class="section-title">我的排班管理</h3>
-      
+
       <div class="add-schedule-form">
         <h4 class="form-title">添加新的排班时间</h4>
         <div class="form-row">
@@ -152,10 +152,10 @@
         </div>
         <button class="add-schedule-btn" @click="handleAddSchedule">添加排班</button>
       </div>
-      
+
       <div class="current-schedule-display">
         <h4>当前已设置排班 (筛选):</h4>
-        
+
         <div class="form-row schedule-filter-row">
             <label>筛选日期:</label>
             <input type="date" v-model="scheduleFilter.startDate" class="date-input" style="max-width: 150px;" />
@@ -178,33 +178,33 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, reactive } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 
 // 导入 API 函数 (从 consultant.js)
 import {
-  GetCurrentConsultantId, 
-  GetConsultantList, 
-  PutReviewAppointment, 
-  PutUpdateStatus, 
-  PostAddSchedule, 
-  GetConsultantSchedules, 
-  DeleteSchedule, 
-} from "@/api/consultant"; 
+  GetCurrentConsultantId,
+  GetConsultantList,
+  PutReviewAppointment,
+  PutUpdateStatus,
+  PostAddSchedule,
+  GetConsultantSchedules,
+  DeleteSchedule,
+} from "@/api/consultant";
 
 // 导入 API 函数 (从 dashboard.js)
 import { GetConsultant } from "@/api/dashboard";
 
 // --- 状态变量 ---
-const currentConsultantId = ref(null); 
+const currentConsultantId = ref(null);
 const dashboardList = ref({}); // 仪表盘数据
-const appointmentList = ref([]); 
-const scheduleList = ref([]); 
+const appointmentList = ref([]);
+const scheduleList = ref([]);
 
 const filterForm = reactive({
   status: '',
-  searchKeyword: '', 
+  searchKeyword: '',
 });
 const pagination = reactive({ page: 1, size: 10, total: 0 });
 
@@ -212,7 +212,7 @@ const scheduleForm = reactive({
   scheduleDate: '',
   startTime: '09:00',
   endTime: '17:00',
-  maxAppointments: 1, 
+  maxAppointments: 1,
 });
 
 // 【更新逻辑】计算默认日期范围：前30天 到 后30天
@@ -238,14 +238,14 @@ const scheduleFilter = reactive({
 
 // --- 生命周期 ---
 onMounted(async () => {
-  await fetchConsultantId(); 
+  await fetchConsultantId();
   if (currentConsultantId.value) {
       // 加载仪表盘数据
       fetchDashboardData();
       // 加载预约列表
       fetchAppointments();
       // 【恢复自动调用】一进入页面就使用默认日期（30天前至今天）加载排班列表
-      fetchSchedules(); 
+      fetchSchedules();
   }
 });
 
@@ -264,7 +264,7 @@ const fetchConsultantId = async () => {
 const fetchDashboardData = async () => {
     try {
         const res = await GetConsultant();
-        dashboardList.value = res || {}; 
+        dashboardList.value = res || {};
     } catch (error) {
         console.error("获取仪表盘数据失败", error);
         ElMessage.error("获取仪表盘数据失败");
@@ -285,7 +285,7 @@ const fetchAppointments = async () => {
     ElMessage.warning('Consultant ID not loaded, unable to fetch appointment list.');
     return;
   }
-  
+
   try {
     const params = {
       page: pagination.page,
@@ -293,8 +293,8 @@ const fetchAppointments = async () => {
       status: filterForm.status,
       searchKeyword: filterForm.searchKeyword,
     };
-    
-    const res = await GetConsultantList(params); 
+
+    const res = await GetConsultantList(params);
     appointmentList.value = res.list || [];
     pagination.total = res.pagination?.total || 0;
 
@@ -315,7 +315,7 @@ const changePage = (delta) => {
 const handleAppointmentReview = async (appointmentId, action) => {
   const actionText = action === 'CONFIRM' ? '接受' : '拒绝';
   const type = action === 'CANCEL' ? 'warning' : 'info';
-  
+
   try {
     const { value: notes } = await ElMessageBox.prompt('', `${actionText}预约确认`, {
         confirmButtonText: `确定${actionText}`,
@@ -326,15 +326,15 @@ const handleAppointmentReview = async (appointmentId, action) => {
     });
 
     const data = {
-        action: action, 
-        notes: notes || `咨询师已${actionText}` 
+        action: action,
+        notes: notes || `咨询师已${actionText}`
     }
 
     await PutReviewAppointment(appointmentId, data);
 
     ElMessage.success(`预约已成功${actionText}！`);
     fetchAppointments(); // 刷新列表
-    fetchDashboardData(); 
+    fetchDashboardData();
   } catch (e) {
     if (e !== 'cancel' && e !== 'close') {
         console.error(`Appointment ${actionText} failed`, e);
@@ -362,7 +362,7 @@ const handleUpdateStatus = async (appointmentId, status) => {
 
     ElMessage.success(`预约状态已更新为 ${getStatusLabel(status)}！`);
     fetchAppointments(); // 刷新列表
-    fetchDashboardData(); 
+    fetchDashboardData();
   } catch (e) {
     if (e !== 'cancel' && e !== 'close') {
         console.error(`Failed to update status`, e);
@@ -378,7 +378,7 @@ const fetchSchedules = async () => {
     if (!currentConsultantId.value) {
         ElMessage.warning('咨询师ID未加载，无法获取排班列表。');
         return;
-    }; 
+    };
 
     try {
         // 使用 scheduleFilter 中的 startDate 和 endDate 作为 API 参数
@@ -388,13 +388,13 @@ const fetchSchedules = async () => {
         if (scheduleFilter.endDate) params.endDate = scheduleFilter.endDate;
 
         // 【修正】调用 API 时传入参数
-        const res = await GetConsultantSchedules(currentConsultantId.value, params); 
-        
+        const res = await GetConsultantSchedules(currentConsultantId.value, params);
+
         let list = res.list ? res.list : (Array.isArray(res) ? res : []);
-        
+
         // 【关键修复】：使用 API 返回的 'date' 字段进行升序排序
         scheduleList.value = list.sort((a,b) => new Date(a.date) - new Date(b.date));
-        
+
     } catch (error) {
         console.error("获取排班列表失败", error);
         ElMessage.error('获取排班列表失败，请检查日期格式或网络连接。');
@@ -410,7 +410,7 @@ const handleAddSchedule = async () => {
         ElMessage.warning('开始时间必须早于结束时间！');
         return;
     }
-    
+
     try {
       // 【关键修改】：确保时间字段包含秒 (:00)，防止后端因为缺少秒数而报错
         const formattedStartTime = startTime.includes(':00') ? startTime : `${startTime}:00`;
@@ -420,10 +420,10 @@ const handleAddSchedule = async () => {
             scheduleDate: scheduleDate,
             startTime: formattedStartTime,
             endTime: formattedEndTime,
-            maxAppointments: maxAppointments 
+            maxAppointments: maxAppointments
         });
         ElMessage.success('排班添加成功！');
-        
+
         // 清空并重置表单
         scheduleForm.scheduleDate = '';
         scheduleForm.startTime = '09:00';
@@ -431,7 +431,7 @@ const handleAddSchedule = async () => {
         scheduleForm.maxAppointments = 1;
 
         // 添加排班成功后，自动使用当前筛选条件刷新排班列表
-        fetchSchedules(); 
+        fetchSchedules();
     }catch (error) {
         console.error("添加排班失败", error);
         ElMessage.error(`添加排班失败: ${error.message || '未知错误'}`);
@@ -445,7 +445,7 @@ const handleDeleteSchedule = async (scheduleId) => {
             cancelButtonText: '取消',
             type: 'error'
         });
-        
+
         await DeleteSchedule(scheduleId);
         ElMessage.success('排班删除成功！');
         fetchSchedules(); // 刷新列表
@@ -465,7 +465,7 @@ const getStatusClass = (status) => {
     'CONFIRMED': 'status-confirmed',
     'COMPLETED': 'status-completed',
     'CANCELLED': 'status-cancelled',
-    'REJECTED': 'status-rejected', 
+    'REJECTED': 'status-rejected',
   };
   return map[status] || '';
 };

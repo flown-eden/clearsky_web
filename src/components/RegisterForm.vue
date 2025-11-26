@@ -8,11 +8,11 @@
         <!-- 用户名输入框 -->
         <div class="input-group">
           <i class="icon user-icon"></i> <!-- 使用通用图标或 lock-icon -->
-          <input 
-            v-model="form.username" 
-            type="text" 
+          <input
+            v-model="form.username"
+            type="text"
             placeholder="请输入9位数字用户名"
-            required 
+            required
           />
         </div>
 
@@ -21,23 +21,23 @@
 
         <!-- 密码输入框 -->
         <div class="input-group">
-          <i class="icon lock-icon"></i> 
-          <input 
-            v-model="form.password" 
-            type="password" 
-            placeholder="请输入密码" 
-            required 
+          <i class="icon lock-icon"></i>
+          <input
+            v-model="form.password"
+            type="password"
+            placeholder="请输入密码"
+            required
           />
         </div>
 
         <!-- 确认密码输入框 -->
         <div class="input-group">
-          <i class="icon lock-icon"></i> 
-          <input 
-            v-model="form.confirmPassword" 
-            type="password" 
+          <i class="icon lock-icon"></i>
+          <input
+            v-model="form.confirmPassword"
+            type="password"
             placeholder="确认密码"
-            required 
+            required
           />
         </div>
 
@@ -51,7 +51,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { reactive, onBeforeUnmount } from 'vue';
 // 移除了 axios，因为 auth.js 中已封装
 import { PostRegister } from '@/api/auth';
@@ -104,7 +104,7 @@ const handleSubmit = async () => {
         // 如果后端要求这些字段非空，您可能需要联系后端修改 API
      }).then(()=>{
         alert('注册成功！请前往登录。');
-        emit('goToLogin');
+        goToLogin();
      })
 
   } catch (error) {
@@ -115,7 +115,10 @@ const handleSubmit = async () => {
 };
 
 const closeModal = () => emit('close');
-const goToLogin = () => emit('goToLogin');
+const goToLogin = () => {
+  emit('close');
+  emit('goToLogin');
+};
 </script>
 
 <style scoped>

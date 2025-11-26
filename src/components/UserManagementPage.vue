@@ -14,41 +14,41 @@
           请填写您的专业信息，通过审核后您将获得相应的系统权限。
         </p>
 
-        <el-form 
-          ref="consultantFormRef" 
-          :model="consultantForm" 
-          :rules="consultantRules" 
+        <el-form
+          ref="consultantFormRef"
+          :model="consultantForm"
+          :rules="consultantRules"
           label-width="120px"
           class="consultant-form"
         >
           <el-form-item label="真实姓名" prop="realName">
             <el-input v-model="consultantForm.realName" placeholder="请输入真实姓名" />
           </el-form-item>
-          
+
           <el-form-item label="专业领域" prop="specialization">
             <el-input v-model="consultantForm.specialization" placeholder="例如：认知行为疗法、家庭治疗" />
           </el-form-item>
-          
+
           <el-form-item label="资质证书" prop="qualification">
             <el-input v-model="consultantForm.qualification" placeholder="例如：国家二级心理咨询师证书编号" />
           </el-form-item>
-          
+
           <el-form-item label="经验年限" prop="experienceYears">
-            <el-input-number 
-              v-model="consultantForm.experienceYears" 
-              :min="0" 
+            <el-input-number
+              v-model="consultantForm.experienceYears"
+              :min="0"
               :max="50"
               controls-position="right"
             />
             <span style="margin-left: 10px;">年</span>
           </el-form-item>
-          
+
           <el-form-item label="个人简介" prop="introduction">
-            <el-input 
-              v-model="consultantForm.introduction" 
-              type="textarea" 
-              :rows="4" 
-              placeholder="请详细介绍您的专业背景、擅长领域和治疗理念" 
+            <el-input
+              v-model="consultantForm.introduction"
+              type="textarea"
+              :rows="4"
+              placeholder="请详细介绍您的专业背景、擅长领域和治疗理念"
             />
           </el-form-item>
           <el-form-item>
@@ -65,7 +65,7 @@
 
     <template v-else-if="userRole === 'ADMIN'">
       <el-tabs v-model="activeTab" class="user-tabs">
-        
+
         <el-tab-pane label="系统用户管理" name="users">
           <div class="search-bar">
             <el-select v-model="userForm.role" placeholder="筛选角色" clearable @change="getUserList">
@@ -111,16 +111,16 @@
                 {{ row.createdAt ? row.createdAt.replace('T', ' ') : '-' }}
               </template>
             </el-table-column>
-            
+
 <el-table-column label="操作" width="180" fixed="right">
   <template #default="{ row }">
     <button class="action-btn view-btn" @click="handleViewDetails(row)">详情</button>
-    
-    <button 
+
+    <button
       v-if="row.role === 'USER' && row.status !== 'PENDING'"
       :class="[
-        'action-btn', 
-        'toggle-status-btn', 
+        'action-btn',
+        'toggle-status-btn',
         // 如果是 BANNED，显示 '启用' 样式 (status-unblock)，否则显示 '封禁' 样式 (status-block)
         row.status === 'BANNED' ? 'status-unblock' : 'status-block'
       ]"
@@ -146,7 +146,7 @@
         <el-tab-pane :label="`待审核咨询师 (${pendingConsultantList.length})`" name="consultant-pending">
           <el-table :data="pendingConsultantList" stripe style="width: 100%" height="calc(100vh - 350px)">
             <el-table-column type="index" label="序号" width="80" />
-            
+
             <el-table-column prop="username" label="关联用户名" width="120">
                <template #default="{ row }">
                  {{ row.username || '未知用户' }}
@@ -157,13 +157,13 @@
             <el-table-column prop="specialization" label="专业领域" show-overflow-tooltip />
             <el-table-column prop="qualification" label="资质证书" show-overflow-tooltip />
             <el-table-column prop="experienceYears" label="经验(年)" width="100" align="center" />
-            
+
             <el-table-column prop="createdAtFormatted" label="申请时间" width="180">
                 <template #default="{ row }">
                     {{ row.createdAtFormatted }}
                 </template>
             </el-table-column>
-            
+
             <el-table-column label="操作" width="120" fixed="right">
               <template #default="{ row }">
                 <button class="action-btn view-btn" @click="openReviewDialog(row)">审核/详情</button>
@@ -173,7 +173,7 @@
         </el-tab-pane>
       </el-tabs>
     </template>
-    
+
     <template v-else>
       <div class="permission-alert">
         <i class="fas fa-exclamation-triangle"></i>
@@ -227,9 +227,9 @@
         </el-row>
       </div>
 
-      <el-form 
-        ref="reviewFormRef" 
-        :model="reviewForm" 
+      <el-form
+        ref="reviewFormRef"
+        :model="reviewForm"
         label-width="80px"
       >
         <el-form-item label="审核结果" prop="action" :rules="[{ required: true, message: '请选择', trigger: 'change' }]">
@@ -239,20 +239,20 @@
           </el-radio-group>
         </el-form-item>
 
-        <el-form-item 
-          label="原因" 
+        <el-form-item
+          label="原因"
           prop="reason"
           :rules="[{ required: reviewForm.action === 'REJECT', message: '拒绝时必须填写原因', trigger: 'blur' }]"
         >
-          <el-input 
-            v-model="reviewForm.reason" 
-            type="textarea" 
-            :rows="3" 
-            :placeholder="reviewForm.action === 'REJECT' ? '请输入拒绝原因' : '备注 (可选)'" 
+          <el-input
+            v-model="reviewForm.reason"
+            type="textarea"
+            :rows="3"
+            :placeholder="reviewForm.action === 'REJECT' ? '请输入拒绝原因' : '备注 (可选)'"
           />
         </el-form-item>
       </el-form>
-      
+
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="reviewDialogVisible = false">取消</el-button>
@@ -264,11 +264,11 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from 'vue';
-import { 
-  GetUsers, GetByUserId, PutByUserIdStatus, 
-  GetPendingConsultants, PutConsultantReview, 
+import {
+  GetUsers, GetByUserId, PutByUserIdStatus,
+  GetPendingConsultants, PutConsultantReview,
   PostConsultantUpload, CheckConsultantApproved
 } from '@/api/user';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -281,15 +281,31 @@ import { storeToRefs } from 'pinia';
 
 // ==================== Pinia 逻辑 ====================
 // 实例化 store
-const userStore = useUserStore(); 
+const userStore = useUserStore();
 // 【修改】解构 token, role, id, realName
-const { role, id, realName } = storeToRefs(userStore); 
+const { role, id, realName } = storeToRefs(userStore);
 const userRole = computed(() => role.value);
 const userId = computed(() => id.value); // 【新增】获取当前登录用户ID // 在模板中使用 userRole.value 即可，但在 setup 中我们访问 role.value
 // ==================== /Pinia 逻辑 ====================
 
 // Tab 状态
 const activeTab = ref('users');
+
+// 监听全局事件，切换到指定标签页
+const handleSwitchTab = (event) => {
+  const { tab } = event.detail;
+  if (tab) {
+    activeTab.value = tab;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('switchTab', handleSwitchTab);
+});
+
+// 在组件销毁前移除事件监听
+// 注意：在 Vue 3 的组合式 API 中，通常不需要手动清理事件监听器，
+// 但如果需要，可以使用 onUnmounted 钩子
 
 // 用户列表数据
 const userList = ref([]);
@@ -384,7 +400,7 @@ const submitConsultantForm = async () => {
       experienceYears: consultantForm.experienceYears,
       introduction: consultantForm.introduction,
     };
-    
+
     // 调用上传 API (修改也用这个接口)
     await PostConsultantUpload(submitData);
 
@@ -412,7 +428,7 @@ const resetConsultantForm = () => {
         consultantFormRef.value.resetFields();
     }
     // 始终只保留真实姓名 (从 Pinia 获取)
-    consultantForm.realName = realName.value; 
+    consultantForm.realName = realName.value;
 };
 
 // 【新增】在 onMounted 中调用
@@ -439,9 +455,9 @@ const getRoleLabel = (role) => {
 const getStatusLabel = (status) => {
   switch (String(status).toUpperCase()) {
     case 'ACTIVE': return '活跃';
-    case 'INACTIVE': return '不活跃'; 
+    case 'INACTIVE': return '不活跃';
     case 'PENDING': return '待审核';
-    case 'BANNED': return '已封禁'; 
+    case 'BANNED': return '已封禁';
     default: return '未知';
   }
 };
@@ -487,7 +503,7 @@ const handleBlockStatus = (row) => {
     ElMessage.warning('只有普通学生用户才能被封禁或启用。');
     return;
   }
-  
+
   // 1. 确定操作后的目标状态和行为标签。
   let newStatus;
   let actionLabel;
@@ -501,7 +517,7 @@ const handleBlockStatus = (row) => {
       warningText = ''; // 启用无需额外警告
   } else {
       // 当前是 ACTIVE 或 INACTIVE -> 目标是 BANNED (封禁)
-      newStatus = 'BANNED'; 
+      newStatus = 'BANNED';
       actionLabel = '封禁';
       warningText = '封禁后该用户将无法登录。';
   }
@@ -532,13 +548,13 @@ const handleBlockStatus = (row) => {
 const handleViewDetails = async (row) => {
   try {
     const res = await GetByUserId(row.id);
-    
+
     // 【重要修改】判断逻辑，先尝试 res.data，如果不存在则使用 res 本身
     let userData = null;
     if (res && res.data) {
         // 假设返回结构是 { data: {...} }
         userData = res.data;
-    } else if (res && typeof res === 'object' && !res.data) { 
+    } else if (res && typeof res === 'object' && !res.data) {
         // 假设返回结构直接是 {...} (用户对象)
         // 并且 res 不包含 code/message 这种统一接口字段 (可选)
         userData = res;
@@ -570,17 +586,17 @@ const handleViewDetails = async (row) => {
 // ==================== 咨询师审核逻辑 (Tab 2) ====================
 
 // 1. 定义数据源 (注意：这里使用不带s的命名，与 template 保持一致)
-const pendingConsultantList = ref([]); 
+const pendingConsultantList = ref([]);
 
 // 2. 获取待审核咨询师列表 (API调用)
 const getPendingConsultantList = async () => {
   // 如果不是管理员，不请求
   if (userRole.value !== 'ADMIN') return;
-  
+
   try {
     // 调用 API
     const res = await GetPendingConsultants();
-    
+
     // 【核心修复】
     // 你的 request 拦截器可能已经脱掉了外层壳，导致 res 直接就是数组。
     // 我们做一个兼容判断：如果 res 是数组，直接用；如果 res.data 是数组，用 res.data
@@ -614,12 +630,12 @@ const getPendingConsultantList = async () => {
 const openReviewDialog = (item) => {
     currentReviewItem.value = item;
     // 初始化审核表单
-    reviewForm.value = { 
+    reviewForm.value = {
       action: 'APPROVE', // 默认通过
-      reason: item.rejectedReason || '', 
+      reason: item.rejectedReason || '',
     };
     reviewDialogVisible.value = true;
-    
+
     if (reviewFormRef.value) {
       reviewFormRef.value.clearValidate();
     }
@@ -636,14 +652,14 @@ const submitReview = async () => {
             action: reviewForm.value.action,
             reason: reviewForm.value.reason,
         };
-        
+
         await PutConsultantReview(consultantId, submitData);
         ElMessage.success(`操作成功`);
-        
+
         // 刷新列表并关闭弹窗
         getPendingConsultantList();
         reviewDialogVisible.value = false;
-        
+
         // 可选：刷新一下全部用户列表，因为状态变了
         if (activeTab.value === 'users') getUserList();
     } catch (error) {

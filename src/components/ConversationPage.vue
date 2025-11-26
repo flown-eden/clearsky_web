@@ -6,17 +6,17 @@
     <div class="header-controls">
       <div class="info-block">
         <template v-if="userRole === 'ADMIN'">
-          💡 **系统管理员：** 仅对 **高风险** 或 **严重风险** 会话显示“接管会话”按钮。接管后会话状态将升级为 **已升级 (ESCALATED)**。
+          💡 系统管理员：仅对高风险或严重风险会话显示“接管会话”按钮。接管后会话状态将升级为已升级。
         </template>
         <template v-else-if="userRole === 'CONSULTANT'">
-          💡 **心理咨询师：** 重点关注 **严重风险** 会话。请及时 **接管** 风险等级为“严重”或“高”的学生会话并进行干预。
+          💡 心理咨询师：重点关注严重风险会话。请及时接管风险等级为“严重”或“高”的学生会话并进行干预。
         </template>
       </div>
 
       <div class="action-buttons">
         <button class="search-btn" @click="fetchConversations">刷新列表</button>
         <button v-if="userRole === 'CONSULTANT'" class="action-btn-primary" @click="filterSevereConversations">
-          仅看严重风险 ({{ severeCount }})
+          待接管的严重风险会话 ({{ severeCount }})
         </button>
       </div>
     </div>
@@ -28,7 +28,7 @@
           <option value="">全部</option>
           <option v-for="s in converStatus" :key="s.value" :value="s.value">{{ s.label }}</option>
         </select>
-        
+
         <label>风险筛选：</label>
         <select v-model="converForm.riskLevel" @change="fetchConversations" class="status-select">
           <option value="">全部风险</option>
@@ -59,13 +59,13 @@
               </span>
             </td>
             <td>{{ formatTime(item.createdAt) }}</td>
-            
+
             <td>
               <span :class="['risk-tag', getRiskClass(item.riskLevel)]">
                 {{ getRiskLabel(item.riskLevel) }}
               </span>
             </td>
-            
+
             <td>
               <span v-if="item.status === 'ESCALATED'" class="status-escalated">已升级(人工)</span>
               <span v-else-if="item.status === 'ACTIVE'" class="status-active">AI进行中</span>
@@ -84,9 +84,9 @@
               </template>
 
               <template v-else-if="item.status === 'ACTIVE'">
-                <button 
+                <button
                   v-if="(userRole === 'ADMIN' || userRole === 'CONSULTANT') && (item.riskLevel === 'CRITICAL' || item.riskLevel === 'HIGH')"
-                  class="action-btn takeover-btn" 
+                  class="action-btn takeover-btn"
                   @click="handleTakeOverPrompt(item)">
                   {{ userRole === 'ADMIN' ? '接管会话' : '立即干预' }}
                 </button>
@@ -119,19 +119,19 @@
         <div class="modal-header">
           <h3>
             <span v-if="isReadOnlyMode">查看记录</span>
-            <span v-else>实时干预</span> 
+            <span v-else>实时干预</span>
             : {{ currentChatUser }} (会话ID: {{ currentChatId }})
           </h3>
           <button class="close-icon" @click="closeChatModal">×</button>
         </div>
-        
+
         <div class="chat-box" ref="chatBoxRef">
           <div class="messages" id="message-container">
             <div v-if="loadingMessages" class="loading-text">加载消息记录中...</div>
-            
-        <div 
-          v-for="(msg, idx) in messageList" 
-          :key="idx" 
+
+        <div
+          v-for="(msg, idx) in messageList"
+          :key="idx"
           :class="['message', getMessageClass(msg.senderType)]" >
           <div class="msg-sender">
             {{ getSenderLabel(msg.senderType) }} <span class="msg-time">{{ formatTime(msg.createdAt, true) }}</span>
@@ -139,13 +139,13 @@
           <div class="msg-content">{{ msg.content }}</div>
         </div>
           </div>
-          
+
           <div class="input-area" v-if="!isReadOnlyMode">
-            <input 
-              type="text" 
-              v-model="replyContent" 
+            <input
+              type="text"
+              v-model="replyContent"
               @keyup.enter="handleSendReply"
-              placeholder="输入回复内容，按回车发送..." 
+              placeholder="输入回复内容，按回车发送..."
               class="chat-input"
               :disabled="sending"
             >
@@ -160,7 +160,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed, nextTick } from 'vue';
 import {
   GetActiveConversations,
@@ -168,10 +168,10 @@ import {
   PostAdminTakeover,
   PostReply,
   PostEndConversation // 【新增点 2】引入结束会话 API
-} from '@/api/conversations'; 
+} from '@/api/conversations';
 
 // --- 状态变量 ---
-const userRole = ref('ADMIN'); 
+const userRole = ref('ADMIN');
 const conversations = ref([]);
 const messageList = ref([]);
 const showChatModal = ref(false);
@@ -180,14 +180,14 @@ const currentChatUser = ref('');
 const replyContent = ref('');
 const sending = ref(false);
 const loadingMessages = ref(false);
-const isReadOnlyMode = ref(false); 
+const isReadOnlyMode = ref(false);
 
 // 筛选表单: 包含 riskLevel
 const converForm = ref({
   page: 1,
   size: 10,
-  status: '', 
-  riskLevel: '' 
+  status: '',
+  riskLevel: ''
 });
 
 const converStatus = [
@@ -220,7 +220,7 @@ const fetchConversations = async () => {
   try {
     const res = await GetActiveConversations(converForm.value);
     // 【关键修正点】将 res.records 改回 res.list
-    conversations.value = res.list || []; 
+    conversations.value = res.list || [];
   } catch (error) {
     console.error("加载会话列表失败", error);
     conversations.value = [];
@@ -252,7 +252,7 @@ const handleTakeOverPrompt = async (item) => {
   }
 
   const roleName = userRole.value === 'ADMIN' ? '管理员' : '咨询师';
-  
+
   // 1. 获取接管原因 (reason)
   const reason = prompt(`${roleName}接管确认：\n请输入接管原因 (必填):`, "检测到高风险内容，需人工介入");
   if (!reason) return;
@@ -266,12 +266,12 @@ const handleTakeOverPrompt = async (item) => {
       reason: reason,
       content: firstMessage
     });
-    
+
     alert('接管成功！会话状态已更新为已升级(ESCALATED)。');
-    
+
     // 刷新列表状态
     await fetchConversations();
-    
+
     // 自动打开聊天窗口
     const updatedItem = conversations.value.find(c => c.id === item.id) || { ...item, status: 'ESCALATED' };
     // 确保 chat user 字段存在
@@ -281,7 +281,7 @@ const handleTakeOverPrompt = async (item) => {
         updatedItem.user.username = `用户ID: ${updatedItem.userId}`;
     }
     openChatModal(updatedItem);
-    
+
   } catch (error) {
     console.error("接管失败", error);
     alert('接管失败: ' + (error.message || '未知错误'));
@@ -293,16 +293,16 @@ const handleEndConversation = async (item) => {
   if (!confirm(`确定要结束ID为 ${item.id} 的会话吗？这将不可逆转。`)) {
     return;
   }
-  
+
   try {
     // 调用新的结束 API
     await PostEndConversation(item.id);
-    
+
     alert('会话已成功结束！');
-    
+
     // 刷新列表状态
     await fetchConversations();
-    
+
   } catch (error) {
     console.error("结束会话失败", error);
     alert('结束会话失败: ' + (error.message || '未知错误'));
@@ -315,7 +315,7 @@ const openChatModal = async (item) => {
   currentChatId.value = item.id;
 // 【修正】强制使用 '用户ID: xx' 的格式，无论是否有 username
 currentChatUser.value = `用户ID: ${item.userId ? item.userId : '--'}`;
-    
+
   showChatModal.value = true;
   messageList.value = [];
   loadingMessages.value = true;
@@ -336,12 +336,12 @@ currentChatUser.value = `用户ID: ${item.userId ? item.userId : '--'}`;
 const handleSendReply = async () => {
   // ... (保持不变)
   if (!replyContent.value.trim()) return;
-  
+
   if (isReadOnlyMode.value) {
       alert("当前会话状态不允许回复。请确保会话处于'已升级(ESCALATED)'状态。");
       return;
   }
-  
+
   sending.value = true;
   try {
     const res = await PostReply(currentChatId.value, {
@@ -350,12 +350,12 @@ const handleSendReply = async () => {
     });
 
     const newMessage = res || {
-        sender: userRole.value, 
+        sender: userRole.value,
         content: replyContent.value,
         createdAt: new Date().toISOString()
     };
     messageList.value.push(newMessage);
-    
+
     replyContent.value = '';
     scrollToBottom();
   } catch (error) {
@@ -370,7 +370,7 @@ const closeChatModal = () => {
   currentChatId.value = null;
   messageList.value = [];
   // 刷新列表，以更新会话状态
-  fetchConversations(); 
+  fetchConversations();
 };
 
 // --- 工具函数 (保持不变) ---
@@ -411,10 +411,10 @@ const getRiskLabel = (level) => {
 const getMessageClass = (sender) => {
     // 如果发送者是 CONSULTANT 或 ADMIN，则视为自己的消息（放在右侧）
     if (sender === 'CONSULTANT' || sender === 'ADMIN') {
-      return 'self-message'; 
+      return 'self-message';
     }
     // 否则（USER 或 AI），视为对方的消息（放在左侧）
-    return 'other-message'; 
+    return 'other-message';
 };
 
 // 【修改点 2】修改 getSenderLabel：咨询师应该显示“人工咨询师”
@@ -422,7 +422,7 @@ const getSenderLabel = (sender) => {
     switch (sender) {
         case 'USER': return '学生';
         case 'AI': return 'AI助手';
-        case 'CONSULTANT': return '人工咨询师'; 
+        case 'CONSULTANT': return '人工咨询师';
         default: return '系统';
     }
 };
@@ -558,15 +558,15 @@ const getSenderLabel = (sender) => {
 .chat-btn { background-color: #1890ff; } /* 蓝色 沟通 */
 .chat-btn:hover { background-color: #096dd9; }
 
-.view-btn { background-color: #8c8c8c; } 
+.view-btn { background-color: #8c8c8c; }
 
 /* 【新增点 4】结束会话样式 */
-.end-btn { 
+.end-btn {
   background-color: #8c8c8c; /* 灰色 结束 */
   margin-left: 5px;
-} 
-.end-btn:hover { 
-  background-color: #595959; 
+}
+.end-btn:hover {
+  background-color: #595959;
 }
 
 

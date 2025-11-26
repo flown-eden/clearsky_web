@@ -4,7 +4,7 @@
 
     <template v-if="userRole === 'ADMIN' || userRole === 'CONSULTANT'">
       <div v-if="userRole === 'CONSULTANT'" class="permission-hint">
-        💡 您是心理咨询师，仅允许**新增**测评和**查看**结果，**无法修改或删除**现有测评。
+        💡 您是心理咨询师，仅允许新增测评和查看结果，无法修改或删除现有测评。
       </div>
       <div class="test-table-section">
         <div class="toolbar-wrapper">
@@ -480,7 +480,7 @@
   <TestCategory ref="TestCategoryRef"></TestCategory>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import {
   GetTests,

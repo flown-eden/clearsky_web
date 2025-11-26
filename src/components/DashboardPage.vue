@@ -56,14 +56,14 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { GetDashboard, GetConsultant } from '@/api/dashboard';
 import { onMounted, ref, onBeforeUnmount, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useUserStore } from '@/stores/user.js'; // 导入 Pinia store
 const userStore = useUserStore();
 // 初始化为 null 或空对象，确保 safe navigation (?.) 正常工作
-const dashboardList = ref(null); 
+const dashboardList = ref(null);
 
 
 /**
@@ -73,11 +73,11 @@ const fetchDashboardData = async () => {
   try {
     let res;
     // 根据角色判断调用哪个 API
-    if (userStore.role === 'ADMIN') { 
+    if (userStore.role === 'ADMIN') {
         console.log('Fetching Admin Dashboard data...');
         // 调用 admin API
-        res = await GetDashboard(); 
-    } else if (userStore.role === 'CONSULTANT') { 
+        res = await GetDashboard();
+    } else if (userStore.role === 'CONSULTANT') {
         console.log('Fetching Consultant Dashboard data...');
         // 调用 consultant API (已在 dashboard.js 定义)
         res = await GetConsultant();
@@ -86,7 +86,7 @@ const fetchDashboardData = async () => {
         dashboardList.value = {}; // 避免报错
         return;
     }
-    
+
     console.log('Dashboard API Response:', res);
 
     // 假设 res 是 API 返回的 data 字段内容
@@ -107,13 +107,13 @@ const fetchDashboardData = async () => {
 const calculateCompletionRate = () => {
   // 使用 API 返回的 appointmentCompletionRate
   let completionRate = dashboardList.value?.appointmentStats?.appointmentCompletionRate;
-  
+
   // 【修复之前提到的 TypeError】确保 appointmentStats 存在，避免 TypeError
   const stats = dashboardList.value?.appointmentStats;
   if (!stats) {
       return 0; // 如果数据不存在，直接返回 0
   }
-  
+
   if (completionRate === undefined || completionRate === null || isNaN(completionRate)) {
     // 如果 API 未提供，则根据 confirmedAppointments / totalAppointments 自行计算
     // 【修正】移除重复且危险的 const stats = dashboardList.value.appointmentStats;
@@ -140,10 +140,10 @@ const initChartAfterDataLoaded = async () => {
   await new Promise(resolve => setTimeout(resolve, 0));
   const completionRate = calculateCompletionRate();
   initChart1(completionRate);
-  
+
   // 【新增】初始化折线图
   // 假设趋势数据在 dashboardList.value.trendData 中，如果 API 没有，则使用空数组
-  initChart2(dashboardList.value?.trendData || []); 
+  initChart2(dashboardList.value?.trendData || []);
 }
 
 
@@ -155,7 +155,7 @@ const initChart1 = (data) => {
     console.warn('图表 DOM 元素不存在');
     return;
   }
-  
+
   let chartValue = data;
   if (data === undefined || data === null || isNaN(data)) {
     console.warn('预约完成率数据无效，使用默认值 0');
@@ -245,31 +245,31 @@ let myChart2 = null
 const initChart2 = (trendData) => {
     const chartDom = document.getElementById('main1');
     // 【健壮性检查】检查 DOM 元素是否存在且尺寸非零
-    if (!chartDom || chartDom.clientWidth === 0 || chartDom.clientHeight === 0) { 
+    if (!chartDom || chartDom.clientWidth === 0 || chartDom.clientHeight === 0) {
         console.warn('折线图 DOM 元素不存在或尺寸为零，跳过初始化。');
         return;
     }
-    
+
     if (!myChart2) {
       myChart2 = echarts.init(chartDom);
     }
-    
+
     // 假设 trendData 结构为 [{ month: '2023-01', appointments: 5 }, ...]
     const categories = Array.isArray(trendData) ? trendData.map(d => d.month || '未知') : [];
     const seriesData = Array.isArray(trendData) ? trendData.map(d => d.appointments || 0) : [];
-    
+
     const option = {
         title: { text: '近五月预约趋势', left: 'center', show: false },
         tooltip: { trigger: 'axis' },
         grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        xAxis: { 
-            type: 'category', 
-            data: categories 
+        xAxis: {
+            type: 'category',
+            data: categories
         },
         yAxis: { type: 'value' },
-        series: [{ 
+        series: [{
             name: '预约数',
-            type: 'line', 
+            type: 'line',
             data: seriesData,
             smooth: true
         }],
@@ -279,15 +279,19 @@ const initChart2 = (trendData) => {
 
 // 监听窗口大小变化
 const onResize = () => {
-    myChart1 && myChart1.resize();
-    myChart2 && myChart2.resize(); // 【新增】
+    if (myChart1) {
+        myChart1.resize();
+    }
+    if (myChart2) {
+        myChart2.resize();
+    }
 }
 
 // -------------------- 生命周期钩子 --------------------
 
 onMounted(() => {
   // 首次加载时调用数据获取函数
-  fetchDashboardData(); 
+  fetchDashboardData();
   // 【新增】监听页面 resize，以便图表能响应式调整
   window.addEventListener('resize', onResize);
 });
@@ -318,7 +322,7 @@ onBeforeUnmount(() => {
     myChart2 = null;
   }
   // 【新增】移除 resize 监听器
-  window.removeEventListener('resize', onResize); 
+  window.removeEventListener('resize', onResize);
 });
 
 </script>
@@ -467,7 +471,7 @@ onBeforeUnmount(() => {
 
 /* 【新增/修正】确保折线图容器有明确尺寸 */
 #main1 {
-    width: 100%; 
+    width: 100%;
     height: 100%;
 }
 

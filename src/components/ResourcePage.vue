@@ -170,7 +170,7 @@
   <ResourceCategory ref="ResourceCategoryRef"></ResourceCategory>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import {
   GetResources,
@@ -244,7 +244,7 @@ const getResourcesList = async () => {
   try {
     const res = await GetResources(resourcesForm.value);
     console.log("资源列表API返回 (解包后):", res);
-    
+
     // **核心修改：适配 res.list 和 res.pagination 结构**
     if (res && res.list && res.pagination) {
       resourcesList.value = res.list; // 使用 list 字段作为列表数据
@@ -343,7 +343,7 @@ const changeResourceType = (type) => {
   resourcesForm.value.page = 1; // 切换类型重置为第一页
   resourcesForm.value.categoryId = "";
   resourcesForm.value.keyword = "";
-  
+
   getResourcesList();
 };
 

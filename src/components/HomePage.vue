@@ -17,16 +17,16 @@
     <span>仪表盘</span>
   </div>
 
-  <div 
-    class="menu-item" 
-    @click="changeContent('AppointmentPage')" 
+  <div
+    class="menu-item"
+    @click="changeContent('AppointmentPage')"
     v-if="userStore.role !== 'ADMIN'"
     :class="{ active: currentView === 'AppointmentPage' }"
   >
     <i class="fa-solid fa-calendar-check"></i>
     <span>预约管理</span>
   </div>
-  
+
   <div class="menu-item" @click="changeContent('UserManagementPage')"
       :class="{ active: currentView === 'UserManagementPage' }">
     <i class="fa-solid fa-users"></i>
@@ -44,7 +44,7 @@
   </div>
 <div class="menu-item" @click="changeContent('TestManagementPage')"
       :class="{ active: currentView === 'TestManagementPage' }">
-    <i class="fa-solid fa-clipboard-list"></i> 
+    <i class="fa-solid fa-clipboard-list"></i>
     <span>心理测评管理</span>
   </div>
   <div class="menu-item" @click="changeContent('ConversationPage')"
@@ -65,11 +65,11 @@
     <header class="top-header">
     <div class="user-profile">
       <span class="username">{{ userStore.realName || userStore.username || '用户' }}</span>
-      <img :src="userStore.avatarUrl || '/default-avatar.png'" alt="用户头像" class="avatar">
+      <img :src="userStore.avatarUrl || 'src/assets/images/icon_avatar.png'" alt="用户头像" class="avatar">
     </div>
     </header>
       <!-- 渲染当前视图组件 -->
-      <component :is="componentMap[currentView]" />
+      <component :is="componentMap[currentView]" @navigate="handleNavigation" />
     </main>
 
     <!-- ChangePassword 模态框 -->
@@ -77,18 +77,18 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'; 
-import { useUserStore } from '@/stores/user'; 
-import logoPng from '@/assets/images/logo.png'; 
-import HomeContent from './HomeContent.vue';      
-import DashboardPage from './DashboardPage.vue';  
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useUserStore } from '@/stores/user';
+import logoPng from '@/assets/images/logo.png';
+import HomeContent from './HomeContent.vue';
+import DashboardPage from './DashboardPage.vue';
 import AppointmentPage from './AppointmentPage.vue';
 import UserManagementPage from './UserManagementPage.vue';
 import TestManagementPage from './TestManagementPage.vue';
 import CommunityPage from './CommunityPage.vue';
-import ResourcePage from './ResourcePage.vue'; 
-import ConversationPage from './ConversationPage.vue'; 
+import ResourcePage from './ResourcePage.vue';
+import ConversationPage from './ConversationPage.vue';
 import ChangePassword from './ChangePassword.vue';
 
 const componentMap = {
@@ -121,18 +121,39 @@ const logout = () => {
   userStore.removeRealName();
   userStore.removeUsername();
   userStore.removeId();
-  
+
   // 通知 App.vue 执行登出逻辑
-  emit('logout'); 
+  emit('logout');
 };
 
-const openChangePasswordModal = () => { 
+const openChangePasswordModal = () => {
   showChangePasswordModal.value = true;
 };
 
-const closeChangePasswordModal = () => { 
+const closeChangePasswordModal = () => {
   showChangePasswordModal.value = false;
 };
+
+// 处理来自子组件的导航事件
+const handleNavigation = (event) => {
+  const { page, tab } = event.detail;
+  changeContent(page);
+
+  // 如果需要切换到特定标签页，可以通过全局事件等方式通知目标组件
+  if (tab) {
+    // 延迟一点执行，确保组件已经切换完成
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('switchTab', { detail: { tab } }));
+    }, 100);
+  }
+};
+
+// 监听来自 HomeContent 的导航事件
+onMounted(() => {
+  window.addEventListener('navigate', (event) => {
+    handleNavigation({ detail: event.detail });
+  });
+});
 </script>
 
 <style scoped>
@@ -147,7 +168,9 @@ const closeChangePasswordModal = () => {
 
 /* 侧边栏样式 */
 .sidebar {
-  width: 200px;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
   background-color: #3b5998; /* 统一的蓝色调 */
   color: white;
   display: flex;
@@ -156,10 +179,9 @@ const closeChangePasswordModal = () => {
   padding-bottom: 20px;
 }
 
-/* FIXED: logo-area 样式修改，使其占据更多空间并居中内容 */
 .logo-area {
-  min-height: 140px; 
-  display: flex; 
+  min-height: 140px;
+  display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
@@ -167,14 +189,14 @@ const closeChangePasswordModal = () => {
 }
 
 .app-logo {
-  max-width: 100%; 
-  max-height: 100%; 
+  max-width: 100%;
+  max-height: 100%;
   height: auto;
-  margin-bottom: 0; 
+  margin-bottom: 0;
 }
 
 .main-menu {
-  flex-grow: 1; 
+  flex-grow: 1;
   padding-top: 10px;
 }
 
@@ -192,13 +214,13 @@ const closeChangePasswordModal = () => {
 }
 .main-menu .menu-item.active {
   background-color: #4c69b0;
-  
+
   /* 确保边框是内嵌的，并且与 padding 正确配合 */
   border-left: 4px solid #ffffff;
-  
+
   /* 确保左侧内边距被边框“挤压”了 4px */
   padding-left: 16px; /* 20px (原始) - 4px (border) = 16px */
-  
+
   /* 确保右侧 padding 保持一致 */
   padding-right: 20px;
 }
@@ -235,14 +257,14 @@ const closeChangePasswordModal = () => {
 .change-password-btn {
   width: 100%;
   padding: 10px;
-  background-color: #4A90E2; 
+  background-color: #4A90E2;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.2s;
-  margin-bottom: 10px; 
+  margin-bottom: 10px;
 }
 
 .change-password-btn:hover {
@@ -250,7 +272,7 @@ const closeChangePasswordModal = () => {
 }
 
 
-/* 主内容区域 - 
+/* 主内容区域 -
    注意：由于 Header 现在仍在 main-content 内部，为了防止它遮挡内容，
    我们需要给 main-content 顶部预留出 Header 的高度空间。
 */
@@ -258,7 +280,7 @@ const closeChangePasswordModal = () => {
   flex-grow: 1;
   /* 移除原始 padding: 20px; */
   padding: 0 20px 20px 20px; /* 只保留左右和底部的 padding */
-  overflow-y: auto; 
+  overflow-y: auto;
   position: relative; /* 确保 top-header 的定位基准是 main-content */
 }
 
@@ -271,7 +293,7 @@ const closeChangePasswordModal = () => {
   right: 20px;        /* 定位到 main-content 的右侧内边距边缘 */
   height: 60px;       /* 设定高度 */
   display: flex;
-  justify-content: flex-end; 
+  justify-content: flex-end;
   align-items: center;
   background-color: transparent; /* 背景透明，或与页面背景色一致 */
   z-index: 100;       /* 确保它在所有内容之上 */
@@ -299,10 +321,10 @@ const closeChangePasswordModal = () => {
 }
 
 .avatar {
-  width: 36px; 
+  width: 36px;
   height: 36px;
-  border-radius: 50%; 
-  object-fit: cover; 
-  border: 2px solid #3b5998; 
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #3b5998;
 }
 </style>
