@@ -161,13 +161,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from 'vue';
+import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue';
 import {
   GetActiveConversations,
   GetConversationDetail,
   PostAdminTakeover,
   PostReply,
-  PostEndConversation // 【新增点 2】引入结束会话 API
+  PostEndConversation
 } from '@/api/conversations';
 
 // --- 状态变量 ---
@@ -181,6 +181,9 @@ const replyContent = ref('');
 const sending = ref(false);
 const loadingMessages = ref(false);
 const isReadOnlyMode = ref(false);
+
+// 定时器引用
+const refreshTimer = ref(null);
 
 // 筛选表单: 包含 riskLevel
 const converForm = ref({
@@ -201,6 +204,27 @@ const severeCount = computed(() => {
   return conversations.value.filter(c => c.riskLevel === 'CRITICAL' && c.status === 'ACTIVE').length;
 });
 
+// 启动定时刷新
+const startAutoRefresh = () => {
+  // 清除可能存在的旧定时器
+  if (refreshTimer.value) {
+    clearInterval(refreshTimer.value);
+  }
+
+  // 设置新的定时器，每30秒刷新一次
+  refreshTimer.value = setInterval(() => {
+    fetchConversations();
+  }, 30000);
+};
+
+// 停止定时刷新
+const stopAutoRefresh = () => {
+  if (refreshTimer.value) {
+    clearInterval(refreshTimer.value);
+    refreshTimer.value = null;
+  }
+};
+
 // --- 生命周期 & 初始化 ---
 onMounted(() => {
   const storedUserInfo = localStorage.getItem('user');
@@ -211,6 +235,13 @@ onMounted(() => {
     } catch (e) { console.error("解析用户信息失败", e); }
   }
   fetchConversations();
+  // 启动自动刷新
+  startAutoRefresh();
+});
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  stopAutoRefresh();
 });
 
 // --- API 交互方法 ---
