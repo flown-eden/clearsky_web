@@ -63,10 +63,10 @@
     </aside>
     <main class="main-content">
     <header class="top-header">
-    <div class="user-profile">
-      <span class="username">{{ userStore.realName || userStore.username || '用户' }}</span>
-      <img :src="userStore.avatarUrl || 'src/assets/images/icon_avatar.png'" alt="用户头像" class="avatar">
-    </div>
+      <div class="user-profile">
+        <span class="username">{{ userStore.realName || userStore.username || '用户' }}</span>
+        <img :src="userStore.avatarUrl || defaultAvatar" alt="用户头像" class="avatar">
+      </div>
     </header>
       <!-- 渲染当前视图组件 -->
       <component :is="componentMap[currentView]" @navigate="handleNavigation" />
@@ -80,7 +80,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useUserStore } from '@/stores/user';
+// ... existing code ...
 import logoPng from '@/assets/images/logo.png';
+import defaultAvatar from '@/assets/images/icon_avatar.png';
 import HomeContent from './HomeContent.vue';
 import DashboardPage from './DashboardPage.vue';
 import AppointmentPage from './AppointmentPage.vue';

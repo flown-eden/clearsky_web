@@ -162,13 +162,8 @@
 
 <script setup>
 import { ref, onMounted, computed, nextTick, onUnmounted } from 'vue';
-import {
-  GetActiveConversations,
-  GetConversationDetail,
-  PostAdminTakeover,
-  PostReply,
-  PostEndConversation
-} from '@/api/conversations';
+import { GetActiveConversations, GetConversationDetail, PostAdminTakeover, PostReply, PostEndConversation } from '@/api/conversations';
+import wsService from '@/utils/websocket';
 
 // --- 状态变量 ---
 const userRole = ref('ADMIN');
@@ -184,6 +179,7 @@ const isReadOnlyMode = ref(false);
 
 // 定时器引用
 const refreshTimer = ref(null);
+const chatRefreshTimer = ref(null); // 添加这一行用于聊天界面的定时刷新
 
 // 筛选表单: 包含 riskLevel
 const converForm = ref({
@@ -211,10 +207,62 @@ const startAutoRefresh = () => {
     clearInterval(refreshTimer.value);
   }
 
-  // 设置新的定时器，每30秒刷新一次
+  // 设置新的定时器，每秒刷新一次
   refreshTimer.value = setInterval(() => {
     fetchConversations();
-  }, 30000);
+  }, 1000);
+};
+
+// 启动聊天界面定时刷新
+const startChatAutoRefresh = () => {
+  // 清除可能存在的旧定时器
+  if (chatRefreshTimer.value) {
+    clearInterval(chatRefreshTimer.value);
+  }
+
+  // 设置新的定时器，每秒刷新一次聊天内容
+  chatRefreshTimer.value = setInterval(() => {
+    if (currentChatId.value) {
+      refreshChatMessages();
+    }
+  }, 1000);
+};
+
+// 停止聊天界面定时刷新
+const stopChatAutoRefresh = () => {
+  if (chatRefreshTimer.value) {
+    clearInterval(chatRefreshTimer.value);
+    chatRefreshTimer.value = null;
+  }
+};
+
+// 刷新聊天消息
+const refreshChatMessages = async () => {
+  try {
+    // 保存当前滚动位置
+    const chatBox = document.getElementById('message-container');
+    let isScrolledToBottom = true;
+
+    if (chatBox) {
+      // 判断用户是否在底部（允许一些误差）
+      const threshold = 10;
+      isScrolledToBottom = chatBox.scrollHeight - chatBox.clientHeight - chatBox.scrollTop < threshold;
+    }
+
+    const res = await GetConversationDetail(currentChatId.value);
+
+    // 只有当新消息与当前消息不同（数量增加）时才更新列表
+    if (res.messages && res.messages.length !== messageList.value.length) {
+      messageList.value = res.messages || [];
+
+      // 只有在原本就在底部时才滚动到底部
+      if (isScrolledToBottom) {
+        scrollToBottom();
+      }
+    }
+  } catch (error) {
+    console.error("刷新聊天消息失败", error);
+  }
 };
 
 // 停止定时刷新
@@ -235,13 +283,18 @@ onMounted(() => {
     } catch (e) { console.error("解析用户信息失败", e); }
   }
   fetchConversations();
-  // 启动自动刷新
-  startAutoRefresh();
+  // 启动自动刷新 (已使用 WebSocket)
+  // startAutoRefresh();
+  
+  // 连接 WebSocket
+  wsService.connect();
 });
 
 // 组件卸载时清除定时器
 onUnmounted(() => {
   stopAutoRefresh();
+  stopChatAutoRefresh(); // 添加这一行来清理聊天界面定时器
+  wsService.disconnect();
 });
 
 // --- API 交互方法 ---
@@ -288,9 +341,8 @@ const handleTakeOverPrompt = async (item) => {
   const reason = prompt(`${roleName}接管确认：\n请输入接管原因 (必填):`, "检测到高风险内容，需人工介入");
   if (!reason) return;
 
-  // 2. 获取发送给用户的第一条消息 (content)
-  const firstMessage = prompt("请输入发送给学生的第一条消息:", `你好，我是${roleName}，我注意到了你的困扰，我们可以聊聊吗？`);
-  if (!firstMessage) return;
+  // 2. 自动构造发送给用户的第一条消息 (不再弹窗询问，直接进入 WebSocket 实时通讯)
+  const firstMessage = `你好，我是${roleName}，我注意到了你的困扰，我们可以聊聊吗？`;
 
   try {
     await PostAdminTakeover(item.id, {
@@ -356,6 +408,33 @@ currentChatUser.value = `用户ID: ${item.userId ? item.userId : '--'}`;
     const res = await GetConversationDetail(item.id);
     messageList.value = res.messages || [];
     scrollToBottom();
+
+    // 启动 WebSocket 订阅
+    if (typeof wsService !== 'undefined' && wsService.isConnected) {
+        wsService.subscribeToConversation(item.id, (message) => {
+            console.log("收到新消息:", message);
+            // 将新消息追加到 messageList
+            if (currentChatId.value === item.id) {
+                // 适配消息格式
+                const newMessage = {
+                    id: message.id || Date.now(),
+                    content: message.content,
+                    sender: message.senderType === 'USER' ? 'USER' : 'AI', // 假设后端返回 senderType
+                    createdAt: message.createdAt || new Date().toISOString(),
+                    // 其他字段根据实际 API 返回调整
+                };
+                messageList.value.push(newMessage);
+                scrollToBottom();
+            }
+        });
+    } else {
+        console.warn("WebSocket 未连接，无法实时接收消息，请刷新页面重试。");
+        // 降级为轮询
+        startChatAutoRefresh();
+    }
+    
+    // 启动聊天界面自动刷新 (保留轮询作为备份，防止 WebSocket 连接断开)
+    // startChatAutoRefresh();
   } catch (error) {
     console.error("获取详情失败", error);
   } finally {
@@ -400,6 +479,8 @@ const closeChatModal = () => {
   showChatModal.value = false;
   currentChatId.value = null;
   messageList.value = [];
+  // 停止聊天界面自动刷新
+  stopChatAutoRefresh();
   // 刷新列表，以更新会话状态
   fetchConversations();
 };

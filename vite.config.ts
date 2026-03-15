@@ -18,7 +18,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://8.148.213.29:8080/api/v1',
+        // target: 'http://8.148.213.29:8080/api/v1',
+        target: 'http://localhost:8080/api/v1', // 使用本地 API
         changeOrigin: true,
         rewrite: (path: string) => path.replace(/^\/api/, ''),
       },
